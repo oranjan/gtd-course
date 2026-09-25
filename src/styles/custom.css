@@ -1,0 +1,66 @@
+/* Monochrome: point Starlight's accent colours at its gray scale. */
+:root {
+	--sl-color-accent-low: var(--sl-color-gray-6);
+	--sl-color-accent: var(--sl-color-gray-2);
+	--sl-color-accent-high: var(--sl-color-white);
+	--sl-color-text-accent: var(--sl-color-white);
+}
+:root[data-theme='light'] {
+	--sl-color-accent-low: var(--sl-color-gray-6);
+	--sl-color-accent: var(--sl-color-gray-2);
+	--sl-color-accent-high: var(--sl-color-white);
+	--sl-color-text-accent: var(--sl-color-black);
+}
+:root .sl-link-button.primary {
+	color: var(--sl-color-black);
+}
+
+/* Fillable log cells and blanks. */
+.sl-markdown-content [contenteditable] {
+	min-width: 8rem;
+	outline: none;
+	cursor: text;
+}
+.sl-markdown-content td[contenteditable] {
+	background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+	border-inline: 1px solid var(--sl-color-bg);
+	padding-inline: 0.75rem !important;
+}
+.sl-markdown-content td[contenteditable]:focus,
+.gtd-fill:focus {
+	box-shadow: inset 0 0 0 2px var(--sl-color-text);
+}
+.gtd-fill {
+	display: block;
+	min-height: 1.75rem;
+	margin: 0.25rem 0 0.75rem;
+	padding: 0.25rem 0.5rem;
+	border-bottom: 1px solid var(--sl-color-gray-4);
+}
+
+/* Progress tracker. */
+.gtd-progress {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	font-size: var(--sl-text-sm);
+}
+.gtd-progress progress {
+	flex: 1;
+	max-width: 20rem;
+	accent-color: var(--sl-color-text);
+}
+.gtd-done-btn {
+	margin-top: 2.5rem;
+	padding: 0.6rem 1.25rem;
+	border: 1px solid var(--sl-color-text);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--sl-color-text);
+	font: inherit;
+	cursor: pointer;
+}
+.gtd-done-btn[aria-pressed='true'] {
+	background: var(--sl-color-text);
+	color: var(--sl-color-bg);
+}

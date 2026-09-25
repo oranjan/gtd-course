@@ -1,0 +1,103 @@
+---
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+---
+
+<Default><slot /></Default>
+
+<script>
+	// Everything is saved in localStorage, so it stays on this device and browser only.
+	const WEEKS = ['week-1', 'week-2', 'week-3', 'week-4'];
+
+	const load = (key: string) => {
+		try {
+			return localStorage.getItem(key);
+		} catch {
+			return null;
+		}
+	};
+	const save = (key: string, value: string | null) => {
+		try {
+			if (value === null || value === '') localStorage.removeItem(key);
+			else localStorage.setItem(key, value);
+		} catch {}
+	};
+	const isDone = (week: string) => load(`gtd:done:${week}`) === '1';
+
+	function setupLogs(content: Element, page: string) {
+		// Log tables: every empty cell becomes a fillable field.
+		content.querySelectorAll('table td').forEach((cell, i) => {
+			if (cell.textContent?.trim()) return;
+			const key = `gtd:${page}:cell:${i}`;
+			cell.setAttribute('contenteditable', 'plaintext-only');
+			cell.textContent = load(key) ?? '';
+			cell.addEventListener('input', () => save(key, cell.textContent));
+		});
+
+		// Checklists: enable the checkboxes and add a blank line to write on.
+		content.querySelectorAll<HTMLInputElement>('li input[type="checkbox"]').forEach((box, i) => {
+			const boxKey = `gtd:${page}:check:${i}`;
+			box.disabled = false;
+			box.checked = load(boxKey) === '1';
+			box.addEventListener('change', () => save(boxKey, box.checked ? '1' : null));
+
+			const fillKey = `gtd:${page}:fill:${i}`;
+			const fill = document.createElement('span');
+			fill.className = 'gtd-fill';
+			fill.setAttribute('contenteditable', 'plaintext-only');
+			fill.setAttribute('aria-label', 'Your answer');
+			fill.textContent = load(fillKey) ?? '';
+			fill.addEventListener('input', () => save(fillKey, fill.textContent));
+			box.closest('li')?.append(fill);
+		});
+	}
+
+	function markSidebar() {
+		WEEKS.forEach((week) => {
+			const link = document.querySelector(`nav.sidebar a[href$="/weeks/${week}/"]`);
+			if (!link) return;
+			link.querySelector('.gtd-tick')?.remove();
+			if (isDone(week)) link.insertAdjacentHTML('beforeend', ' <span class="gtd-tick" aria-label="done">✓</span>');
+		});
+	}
+
+	function setupDoneButton(content: Element, week: string) {
+		const button = document.createElement('button');
+		button.className = 'gtd-done-btn';
+		const render = () => {
+			const done = isDone(week);
+			button.setAttribute('aria-pressed', String(done));
+			button.textContent = done ? 'Week done ✓' : 'Mark week as done';
+		};
+		button.addEventListener('click', () => {
+			save(`gtd:done:${week}`, isDone(week) ? null : '1');
+			render();
+			markSidebar();
+		});
+		render();
+		content.append(button);
+	}
+
+	function renderProgress() {
+		const box = document.getElementById('course-progress');
+		if (!box) return;
+		const count = WEEKS.filter(isDone).length;
+		box.innerHTML = `<div class="gtd-progress"><progress max="4" value="${count}"></progress><span>${count} / 4 weeks done</span></div>`;
+	}
+
+	function init() {
+		const content = document.querySelector('.sl-markdown-content');
+		if (!content || content.hasAttribute('data-gtd')) return;
+		content.setAttribute('data-gtd', '');
+
+		const page = location.pathname.replace(/\/$/, '') || '/';
+		const week = page.match(/\/weeks\/(week-\d)$/)?.[1];
+
+		setupLogs(content, page);
+		if (week) setupDoneButton(content, week);
+		renderProgress();
+		markSidebar();
+	}
+
+	init();
+	document.addEventListener('astro:page-load', init);
+</script>
